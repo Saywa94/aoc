@@ -7,57 +7,58 @@ const input = await file.text();
 const lines = input
   .split("\n")
   .slice(0, -1)
-  .filter((line) => !line.includes("$ ls"));
+  .filter((line) => !line.includes("$ ls"))
+  .filter((line) => !line.includes("dir "));
 
-let paths = ["/"];
+const root: any = {};
+let cwd = root;
+const path: any[] = [];
 
-lines
-  .filter((line) => line.includes("$ cd"))
-  .slice(1)
-  .forEach((line) => {
-    const folder = line.split(" ").at(-1);
-    if (folder === "..") {
-      const prevPath = paths.at(-1)!.split("/").slice(0, -2).join("/");
-      paths.push(`${prevPath}/`);
+lines.forEach((line) => {
+  if (line[0] === "$") {
+    const dir = line.slice(5);
+    if (dir === "..") {
+      path.pop();
+      cwd = path.at(-1);
     } else {
-      paths.push(`${paths.at(-1)}${folder}/`);
-    }
-  });
-
-const uniquPaths = Object.fromEntries(paths.map((path) => [path, 0]));
-console.log(uniquPaths);
-
-const currentPath: string[] = [];
-lines
-  .filter((line) => !line.includes("dir "))
-  .forEach((line) => {
-    if (line.includes("$ cd")) {
-      const folder = line.split(" ").at(-1);
-      if (folder === "..") {
-        currentPath.pop();
-      } else {
-        currentPath.push(folder!);
+      if (!Object.keys(cwd).includes(dir)) {
+        cwd[dir] = {};
       }
-    } else {
-      if (currentPath.length === 1) {
-        uniquPaths["/"] = uniquPaths["/"]! + Number(line.split(" ")[0]);
-      } else {
-        const path = `/${currentPath.slice(1).join("/")}/`;
-        console.log(path);
-        uniquPaths[path] = uniquPaths[path]! + Number(line.split(" ")[0]);
-      }
+      cwd = cwd[dir];
+      path.push(cwd);
     }
-  });
+  } else {
+    const [size, name] = line.split(" ");
+    cwd[name] = Number(size);
+  }
+});
 
-console.log(uniquPaths);
-// const paths: string[] = [];
+// console.log(Bun.inspect(root));
+// console.log(root["/"]);
 
-// const res = [...folders.entries()].filter(([_, value]) => {
-//   return value <= 100000;
-// });
+// Get sizes of directories
+// function getSize(currentDir: any) {
 //
-// console.log("folders", lines.length);
-// console.log(
-//   "Part 1:",
-//   res.reduce((a, b) => a + b[1], 0),
-// );
+// }
+
+// function populateTree(parent_id) {
+//   const users = p.filter(({ parent }) => parent == parent_id);
+//
+//   return users.map((user) => {
+//     const children = p.filter((child) => child.parent === user.position);
+//     return {
+//       label: user.position,
+//       innerHtml: "",
+//       children: children.map((child) => {
+//         if (user.position !== child.parent) return;
+//         return {
+//           label: child.position,
+//           innerHtml: "",
+//           children: populateTree(child.position),
+//         };
+//       }),
+//     };
+//   });
+// }
+//
+// const result = populateTree("");
